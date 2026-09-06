@@ -137,6 +137,21 @@ def test_temporal_workflow_applies_upstream_log_level(temporal_harness):
     ]
 
 
+def test_temporal_workflow_treats_progress_as_info(temporal_harness):
+    configure_logging(temporal_harness, "info")
+    upstream = RecordingUpstreamSession()
+    logger = Logger(
+        "tests.temporal", bound_context=SimpleNamespace(upstream_session=upstream)
+    )
+
+    logger.progress("visible progress event")
+    temporal_harness.drain()
+
+    assert [(call["level"], call["data"]["message"]) for call in upstream.calls] == [
+        ("info", "visible progress event")
+    ]
+
+
 def test_temporal_workflow_applies_activity_log_level(temporal_harness):
     configure_logging(temporal_harness, "error")
     temporal_harness.execution_id["value"] = "execution-1"
